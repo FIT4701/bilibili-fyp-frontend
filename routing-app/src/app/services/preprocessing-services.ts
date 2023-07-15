@@ -38,12 +38,13 @@ export class PreprocssingService {
         
     }
 
-    public runPreprocessing(dataset_id: string, preprocessing_code: string, selection?: any){
+    public runPreprocessing(dataset_id: string, preprocessing_code: string, selection?: any, variables?: string[]){
         const url = this.apiUrl + '/preprocessing'
         const request_body = {
             DATASET_ID: dataset_id, 
             preprocessing_code: preprocessing_code,
-            params: selection
+            params: selection, 
+            variables: variables,
           }
         console.log(request_body)
 

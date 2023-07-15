@@ -4,6 +4,7 @@ import { DatasetState } from '../../state-controllers/dataset-controller/states'
 import { Store } from '@ngrx/store';
 import { selectDataset } from '../../state-controllers/dataset-controller/selectors/dataset.selectors';
 import { Chart } from 'chart.js/auto';
+import { DatasetActions } from '../../state-controllers/dataset-controller/actions';
 
 @Component({
   selector: 'app-feature-selection',
@@ -18,6 +19,8 @@ export class FeatureSelectionComponent {
   selectedAlgoId: any;
   selectedAlgoName: any;
   algoParamsFormData: any;
+
+  selectionData: any;
 
   chart: any;
 
@@ -68,8 +71,8 @@ export class FeatureSelectionComponent {
     // console.log(typeof(this.algoParamsFormData))
     this.preprocessingService.runPreprocessing(this.datasetId, this.selectedAlgoId, this.algoParamsFormData).subscribe(response => {
       if(response.flag) {
-        const data = response.body
-        this.displayData(this.sortScore(data))
+        this.selectionData = response.body
+        this.displayData(this.sortScore(this.selectionData))
         // console.log(data)
       }
     })
@@ -95,6 +98,16 @@ export class FeatureSelectionComponent {
         ]
         }
     })
+  }
+
+  public saveSelectionData() {
+    const data = []
+    data.push(this.algoParamsFormData.target_attribute)
+    for (let i = 0; i < this.selectionData.length; i++) {
+      data.push(this.selectionData[i][0])
+    }
+    console.log(data)
+    this.datasetStore.dispatch(DatasetActions.loadSelectedFeatureInit({ data: data }))
   }
 
 }

@@ -7,6 +7,11 @@ import { DatasetState } from '../state-controllers/dataset-controller/states';
 import { selectDataset } from '../state-controllers/dataset-controller/selectors/dataset.selectors';
 import { Store } from '@ngrx/store';
 import { PreprocssingService } from 'src/app/services/preprocessing-services';
+
+export interface Variable {
+  name: string;
+  selected: boolean;
+}
 @Component({
   selector: 'app-preprocessing',
   templateUrl: './preprocessing.component.html',
@@ -18,6 +23,9 @@ export class PreprocessingComponent implements OnInit{
   
   selectedPreprocessingMethodId: any;
   datasetId: any;
+
+  variables: Variable[] = [];
+  allVariablesSelected: boolean = true;
 
   private gridApi!: GridApi;
   columnApi: any;
@@ -59,6 +67,14 @@ export class PreprocessingComponent implements OnInit{
     this.dataset$.subscribe((data) =>{
       this.datasetId = data._id
     })
+
+    this.dataset$.pipe(map((data) => data.attributes))
+    .subscribe((variables) => {
+      this.variables = [];
+      variables.forEach((variable: any) => {
+        this.variables.push({name: variable, selected: true})
+      });
+    });
   }
 
   // Example load data from server
@@ -95,42 +111,41 @@ export class PreprocessingComponent implements OnInit{
     return httpOptions;
 }
 
-  public runPreProcessingService(dataset_id: string, preprocessing_code: string){
-    const url = this.apiUrl + '/preprocessing'
-    console.log(url)
-    const request_body = {
-      DATASET_ID: dataset_id, 
-      preprocessing_code: preprocessing_code,
-    } 
-
-    console.log(request_body)
-    const observer = this.httpClient.post<any>(
-      url,
-      request_body,
-      this.getHttpHeader()
-    )
-    observer.subscribe()
-  }
-
   public runPreprocessing(){
-    this.preprocessingService.runPreprocessing(this.datasetId, this.selectedPreprocessingMethodId)
+    const variables: string[] = this.variables.filter(variable => variable.selected).map(variable => variable.name)
+    this.preprocessingService.runPreprocessing(this.datasetId, this.selectedPreprocessingMethodId, null, variables)
       .subscribe((response) => {
         if (response.flag) {
           this.preprocessingService.getResponseData("6435575578b04a2b1549c17b", this.datasetId)
           .subscribe(response => {
             console.log(response)
             const data = response.data
-            for (const key in data[0]){
-              this.columnDefs.push({
-                headerName: key,
-                field: key
-              })
-            }
-            this.gridApi.setColumnDefs(this.columnDefs)
+            // for (const key in data[0]){
+            //   this.columnDefs.push({
+            //     headerName: key,
+            //     field: key
+            //   })
+            // }
+            // this.gridApi.setColumnDefs(this.columnDefs)
             this.rowData = data
           })
         }
       })
+  }
+
+  updateAllSelected() {
+    this.allVariablesSelected = this.variables.every((a) => a.selected);
+  }
+
+  someSelected(): boolean {
+    return (
+      this.variables.filter((a) => a.selected).length > 0 && !this.allVariablesSelected
+    );
+  }
+
+  setAll(selected: boolean) {
+    this.allVariablesSelected = selected;
+    this.variables.forEach((a) => (a.selected = selected));
   }
 
 }

@@ -24,4 +24,22 @@ export class DatasetEffects{
             }),
             catchError((error) => of(DatasetActions.loadSelectedDatasetFailed({error: error})))
         ))
+    
+    loadSelectedFeatureInit$ = createEffect(() =>
+    this.action$.pipe(
+        ofType(DatasetActions.loadSelectedFeatureInit),
+        map(result => {
+            console.log(result)
+            if (result.data != null || result.data != ""){
+                console.log("valid selection")
+                return DatasetActions.loadSelectedFeatureSuccess({data: result.data})
+                }
+            else {
+                console.log("invalid selection")
+                return DatasetActions.loadSelectedFeatureFailed({error: result})
+            }
+        }),
+        catchError((error) => of(DatasetActions.loadSelectedFeatureFailed({error: error})))
+    )
+    )
 }

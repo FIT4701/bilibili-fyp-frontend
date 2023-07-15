@@ -6,3 +6,7 @@ export const selectDataset = createSelector(
     selectedDatasetState,
     state => state.selectedDataset
 )
+export const selectFeatures = createSelector(
+    selectedDatasetState,
+    state => state.selectedFeatures
+)

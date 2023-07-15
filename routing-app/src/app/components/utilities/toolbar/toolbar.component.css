@@ -1,3 +1,10 @@
 .example-spacer {
     flex: 1 1 auto;
   }
+
+::ng-deep .active_page {
+  background-color: #0E3EA0 !important;
+  color: #fff !important;
+  border-style: solid !important;
+}
+  

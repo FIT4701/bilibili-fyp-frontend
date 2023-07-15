@@ -34,7 +34,9 @@
         <app-select-k-best *ngSwitchCase="'select_k_best'" (valueChange)="onParamsChange($event)"></app-select-k-best> 
     </div>
 </mat-expansion-panel>
-
+<!-- <button style="margin: 10px;" mat-raised-button color="accent" routerLink="/machine-learning" routerLinkActive="active" (click)="saveSelectionData()">USE SELECTED FEATURES FOR MACHINE LEARNING</button> -->
+<a mat-raised-button color="primary" style="margin: 10px;" routerLink="/machine-learning" routerLinkActive="active" (click)="saveSelectionData()"
+ariaCurrentWhenActive="page">USE SELECTED FEATURES FOR MACHINE LEARNING</a>
 <div style="position: relative; margin: auto; height:80vh; width:80vw; padding: 50px">
     <canvas id="canvas">{{ chart }}</canvas>
 </div>

@@ -14,6 +14,36 @@
     <button style="margin: 10px;" mat-raised-button color="accent" (click)="runPreprocessing()">RUN</button>
 </div>
 
+<mat-accordion multi>
+	<mat-expansion-panel>
+		<mat-expansion-panel-header>
+			<mat-panel-title>Attribute selection</mat-panel-title>
+			<mat-panel-description>
+				Select attributes to be inlcuded in preprocessing
+			</mat-panel-description>
+		</mat-expansion-panel-header>
+        <section>
+            <div>Select independent variables </div>
+            <br>
+            <div>
+                <mat-checkbox [checked]="allVariablesSelected" [indeterminate]="someSelected()"
+                    (change)="setAll($event.checked)">
+                    Select All
+                </mat-checkbox>
+                <ul>
+                    <li *ngFor="let variable of variables">
+                        <mat-checkbox [(ngModel)]="variable.selected" (ngModelChange)="updateAllSelected()">
+                            {{variable.name}}
+                        </mat-checkbox>
+                    </li>
+                </ul>
+            </div>
+        </section>
+	</mat-expansion-panel>
+</mat-accordion>
+
+<br>
+
 <div style="display: flex; justify-content: center; align-items: center; height: 100%; width: 100%;">
     <div style="height: 100%; width: 80%;">
         <ag-grid-angular

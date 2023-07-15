@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Output, } from '@angular/core';
+import { cloneDeep } from 'lodash';
 
 @Component({
   selector: 'app-voting-params',
@@ -27,7 +28,7 @@ export class VotingParamsComponent {
   }
 
   onChange(){
-    this.valueChange.emit(this.paramsData) 
+    this.valueChange.emit(cloneDeep(this.paramsData)) 
   }
 
   addChild(){
