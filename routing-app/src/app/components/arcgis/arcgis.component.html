@@ -7,3 +7,8 @@
 <div style="display: flex; justify-content: center; height: 100%; width: 100%;">
     <div id="viewDiv"></div>
 </div>
+
+<input hidden type="file" class="file-input" accept=".csv" (change)="onFileSelected($event)" #fileUpload>
+<div class="file-upload">
+    <button mat-raised-button color="accent" (click)="fileUpload.click()">Upload dataset</button>
+</div>

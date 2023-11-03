@@ -5,6 +5,7 @@ import { Store } from '@ngrx/store';
 import { selectDataset } from '../../state-controllers/dataset-controller/selectors/dataset.selectors';
 import { Chart } from 'chart.js/auto';
 import { DatasetActions } from '../../state-controllers/dataset-controller/actions';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-feature-selection',
@@ -24,9 +25,15 @@ export class FeatureSelectionComponent {
 
   chart: any;
 
+  score: any;
+
+  displaySave = false;
+  table = false;
+
   constructor(
     private datasetStore: Store<DatasetState>,
-    private preprocessingService: PreprocssingService
+    private preprocessingService: PreprocssingService,
+    private toaster: ToastrService
     ) {
   }
 
@@ -71,9 +78,27 @@ export class FeatureSelectionComponent {
     // console.log(typeof(this.algoParamsFormData))
     this.preprocessingService.runPreprocessing(this.datasetId, this.selectedAlgoId, this.algoParamsFormData).subscribe(response => {
       if(response.flag) {
+        this.toaster.success('Features Selected')
         this.selectionData = response.body
-        this.displayData(this.sortScore(this.selectionData))
-        // console.log(data)
+        this.displaySave = true
+        if (this.selectedAlgoId == 'select_k_best') {
+          this.table = false
+          this.displayData(this.sortScore(this.selectionData))
+        }
+        else {
+          if (this.chart != null) {
+            this.chart.destroy()
+          }
+          this.table = true
+          this.score = this.selectionData.pop()
+          console.log(this.selectionData)
+          // this.chart.destroy()
+        }
+      }
+      else {
+        this.toaster.error(
+          response.error
+        );
       }
     })
   }
@@ -103,9 +128,18 @@ export class FeatureSelectionComponent {
   public saveSelectionData() {
     const data = []
     data.push(this.algoParamsFormData.target_attribute)
-    for (let i = 0; i < this.selectionData.length; i++) {
-      data.push(this.selectionData[i][0])
+    if (this.selectedAlgoId == 'select_k_best') {
+      for (let i = 0; i < this.selectionData.length; i++) {
+        data.push(this.selectionData[i][0])
+      }
+
     }
+    else if (this.selectedAlgoId == 'wrapper') {
+      for (let i = 0; i < this.selectionData.length; i++) {
+        data.push(this.selectionData[i])
+      }
+    }
+
     console.log(data)
     this.datasetStore.dispatch(DatasetActions.loadSelectedFeatureInit({ data: data }))
   }

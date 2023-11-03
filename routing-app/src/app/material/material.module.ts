@@ -15,6 +15,7 @@ import {MatCheckboxModule} from '@angular/material/checkbox';
 import {MatExpansionModule} from '@angular/material/expansion';
 import {MatMenuModule} from '@angular/material/menu';
 import {MatTooltipModule} from '@angular/material/tooltip';
+import {MatStepperModule} from '@angular/material/stepper';
 
 const MaterialComponents = [
   MatSlideToggleModule,
@@ -32,6 +33,7 @@ const MaterialComponents = [
   MatExpansionModule,
   MatMenuModule,
   MatTooltipModule,
+  MatStepperModule,
 ]
 
 @NgModule({

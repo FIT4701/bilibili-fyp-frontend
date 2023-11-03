@@ -1,214 +1,275 @@
 <div>    
     <app-toolbar currentPageTitle="Machine Learning" previousLink="/feature-selection" nextLink="/results"></app-toolbar>
 </div>
-<div style="padding: 20px; display:flex;">	
-	<button mat-raised-button [matMenuTriggerFor]="animals">Select ML algorithm</button>
-	<mat-menu #animals>
-		<button mat-menu-item [matMenuTriggerFor]="regression">Regression</button>
-		<button mat-menu-item [matMenuTriggerFor]="classification">Classification</button>
-	</mat-menu>
 
-	<mat-menu #regression>
-		<button mat-menu-item (click)="onSelectAlgo('Linear Regression', 'linear_regr')">Linear Regression</button>
-		<button mat-menu-item (click)="onSelectAlgo('Regr - Decision Trees', 'decision_trees_regr')">Decision Trees</button>
-		<button mat-menu-item (click)="onSelectAlgo('Regr - K-Nearest Neighbours (KNN)', 'knn_regr')">K-Nearest Neighbours (KNN)</button>
-		<button mat-menu-item (click)="onSelectAlgo('Regr - Support Vector Machines (SVM)', 'svm_regr')">Support Vector Machines (SVM)</button>
-		<button mat-menu-item [matMenuTriggerFor]="regression_ensemble">Ensemble</button>
-	</mat-menu>
+<br>
 
-	<mat-menu #classification>
-		<button mat-menu-item (click)="onSelectAlgo('Cls - Random Forest', 'random_forest_cls')">Random Forest</button>
-		<button mat-menu-item (click)="onSelectAlgo('Cls - Decision Trees', 'decision_trees_cls')">Decision Trees</button>
-		<button mat-menu-item (click)="onSelectAlgo('Cls - K-Nearest Neighbours (KNN)', 'knn_cls')">K-Nearest Neighbours (KNN)</button>
-		<button mat-menu-item (click)="onSelectAlgo('Cls - Gaussian Naive Bayes', 'gauss_naive_bayes_cls')">Gaussian Naive Bayes</button>
-		<button mat-menu-item [matMenuTriggerFor]="classification_ensemble">Ensemble</button>
-	</mat-menu>
-	
-	<mat-menu #regression_ensemble>
-		<button mat-menu-item (click)="onSelectAlgo('Regr - Bagging', 'bagging_regr')">Bagging</button>
-		<button mat-menu-item (click)="onSelectAlgo('Regr - Random Forest', 'random_forest_regr')">Random Forest</button>
-		<button mat-menu-item (click)="onSelectAlgo('Regr - Voting', 'voting_regr')">Voting</button>
-	</mat-menu>
-
-	<mat-menu #classification_ensemble>
-		<button mat-menu-item (click)="onSelectAlgo('Cls - Voting', 'voting_cls')">Voting</button>
-	</mat-menu>
-
-	<span style="padding: 10px;" *ngIf="selectedAlgoId">{{selectedAlgoName}}</span>
-
-	<span class="flex-spacer"></span>
-	<button mat-raised-button color="accent" (click)="runAlgorithm()">RUN</button>
+<div *ngIf="datasetName; else noDataset" style="text-align: center; font-size: 20px;">
+	Currently selected dataset: {{datasetName}}
 </div>
+<ng-template #noDataset>
+	<div style="text-align: center; font-size: 20px; color: red;">
+		No dataset selected
+	</div>
+</ng-template>
 
-<mat-accordion multi>
-	<mat-expansion-panel>
-		<mat-expansion-panel-header>
-			<mat-panel-title>Attribute selection</mat-panel-title>
-			<mat-panel-description>
-				Select attributes to be inlcuded in training model
-			</mat-panel-description>
-		</mat-expansion-panel-header>
-		<section>
-			<div>Specify target variable</div>
-			<mat-form-field appearance="fill">
-				<mat-label>Target Variable</mat-label>
-				<mat-select (selectionChange)="onSelectTarget()" [(value)]="targetVariable">
-					<mat-option *ngFor="let variable of variables" [value]="variable">
-						{{variable}}
-					</mat-option>
-				</mat-select>
-			</mat-form-field>
-			
+<form [formGroup]="mainForm">
+	<div style="padding: 20px; display:flex;">
+		<div *ngIf="!selectedAlgoName; else selected" >
+			<button mat-raised-button [matMenuTriggerFor]="animals" color="accent">Select ML algorithm</button>
+		</div>
+		<ng-template #selected>
+			<button mat-raised-button [matMenuTriggerFor]="animals" color="primary">{{selectedAlgoName}}</button>
+		</ng-template>
+		<!-- <button mat-raised-button [matMenuTriggerFor]="animals" color="accent">Select ML algorithm</button> -->
+		<mat-menu #animals>
+			<button mat-menu-item [matMenuTriggerFor]="regression">Regression</button>
+			<button mat-menu-item [matMenuTriggerFor]="classification">Classification</button>
+		</mat-menu>
+
+		<mat-menu #regression>
+			<button mat-menu-item (click)="onSelectAlgo('Linear Regression', 'linear_regr','regr')">Linear Regression</button>
+			<button mat-menu-item (click)="onSelectAlgo('Regr - Decision Trees', 'decision_trees_regr','regr')">Decision Trees</button>
+			<button mat-menu-item (click)="onSelectAlgo('Regr - K-Nearest Neighbours (KNN)', 'knn_regr','regr')">K-Nearest Neighbours (KNN)</button>
+			<button mat-menu-item (click)="onSelectAlgo('Regr - Support Vector Machines (SVM)', 'svm_regr','regr')">Support Vector Machines (SVM)</button>
+			<button mat-menu-item [matMenuTriggerFor]="regression_ensemble">Ensemble</button>
+		</mat-menu>
+
+		<mat-menu #classification>
+			<button mat-menu-item (click)="onSelectAlgo('Cls - Decision Trees', 'decision_trees_cls','cls')">Decision Trees</button>
+			<button mat-menu-item (click)="onSelectAlgo('Cls - K-Nearest Neighbours (KNN)', 'knn_cls','cls')">K-Nearest Neighbours (KNN)</button>
+			<button mat-menu-item (click)="onSelectAlgo('Cls - Gaussian Naive Bayes', 'gauss_naive_bayes_cls','cls')">Gaussian Naive Bayes</button>
+			<button mat-menu-item [matMenuTriggerFor]="classification_ensemble">Ensemble</button>
+		</mat-menu>
+		
+		<mat-menu #regression_ensemble>
+			<button mat-menu-item (click)="onSelectAlgo('Regr - Bagging', 'bagging_regr','regr')">Bagging</button>
+			<button mat-menu-item (click)="onSelectAlgo('Regr - Random Forest', 'random_forest_regr','regr')">Random Forest</button>
+			<button mat-menu-item (click)="onSelectAlgo('Regr - Voting', 'voting_regr','regr')">Voting</button>
+		</mat-menu>
+
+		<mat-menu #classification_ensemble>
+			<button mat-menu-item (click)="onSelectAlgo('Cls - Random Forest', 'random_forest_cls','cls')">Random Forest</button>
+			<button mat-menu-item (click)="onSelectAlgo('Cls - Voting', 'voting_cls','cls')">Voting</button>
+		</mat-menu>
+
+		<!-- <span style="padding: 10px;" *ngIf="mainForm.get('algo_type')?.value">{{selectedAlgoName}}</span> -->
+
+		<span class="flex-spacer"></span>
+		<button mat-raised-button color="accent" (click)="runAlgorithm()" [disabled]="mainForm.invalid">RUN</button>
+	</div>
+
+	<!-- <mat-checkbox (change)="onToggleSplit($event)" [(ngModel)]="splitDataset" [ngModelOptions]="{standalone: true}">
+		Split dataset by attribute
+	</mat-checkbox> -->
+
+	<div *ngIf="splitDataset">
+		<mat-form-field appearance="fill">
+			<mat-label>Split Variable</mat-label>
+			<mat-select (selectionChange)="onSelectSplitVar()" formControlName="split_variable">
+				<mat-option *ngFor="let variable of variables" [value]="variable" [disabled]="isSplitVarDisabled(variable)">
+					{{variable}}
+				</mat-option>
+			</mat-select>
+		</mat-form-field>
+	</div>
+
+	<mat-accordion multi>
+		<mat-expansion-panel>
+			<mat-expansion-panel-header>
+				<mat-panel-title>Attribute selection</mat-panel-title>
+				<mat-panel-description>
+					Select attributes to be inlcuded in training model
+				</mat-panel-description>
+			</mat-expansion-panel-header>
 			<section>
-				<div>Select independent variables </div>
-				<br>
-				<div *ngIf="targetVariable;else noTargetSelected">
-					<mat-checkbox [checked]="allSelected" [indeterminate]="someSelected()"
-						(change)="setAll($event.checked)">
-						Select All
-					</mat-checkbox>
-					<ul>
-						<li *ngFor="let variable of independentVariables">
-							<mat-checkbox [(ngModel)]="variable.selected" (ngModelChange)="updateAllSelected()">
-								{{variable.name}}
-							</mat-checkbox>
-						</li>
-					</ul>
-				</div>
-				<ng-template #noTargetSelected>No target selected! Select a target variable to proceed</ng-template>
-			</section>
-		</section>
-	</mat-expansion-panel>
-	<mat-expansion-panel>
-		<mat-expansion-panel-header>
-			<mat-panel-title>Algorithm specific parameters</mat-panel-title>
-			<mat-panel-description>
-				Set parameters of the machine learning algorithm
-			</mat-panel-description>
-		</mat-expansion-panel-header>
-		<div [ngSwitch]="selectedAlgoId">
-			<app-regr-decision-trees-params *ngSwitchCase="'decision_trees_regr'" (valueChange)="onParamsChange($event)"></app-regr-decision-trees-params>
-			<app-regr-knn-params *ngSwitchCase="'knn_regr'" (valueChange)="onParamsChange($event)"></app-regr-knn-params> 
-			<app-regr-random-forest-params *ngSwitchCase="'random_forest_regr'" (valueChange)="onParamsChange($event)"></app-regr-random-forest-params>
-			<app-regr-bagging-params *ngSwitchCase="'bagging_regr'" (valueChange)="onParamsChange($event)"></app-regr-bagging-params>
-			<app-voting-params *ngSwitchCase="'voting_regr'" (valueChange)="onParamsChange($event)"></app-voting-params>
-			<app-cls-decision-trees-params *ngSwitchCase="'decision_trees_cls'"(valueChange)="onParamsChange($event)" ></app-cls-decision-trees-params>
-			<app-cls-random-forest-params *ngSwitchCase="'random_forest_cls'"(valueChange)="onParamsChange($event)" ></app-cls-random-forest-params>
-            <app-cls-knn-params *ngSwitchCase="'knn_cls'"(valueChange)="onParamsChange($event)" ></app-cls-knn-params>
-			<app-cls-voting-params *ngSwitchCase="'voting_cls'"(valueChange)="onParamsChange($event)"></app-cls-voting-params>
-		</div>
-	</mat-expansion-panel>
-	<mat-expansion-panel>
-		<mat-expansion-panel-header>
-			<mat-panel-title>Result logging Information</mat-panel-title>
-			<mat-panel-description>
-				Configure the logging of results
-			</mat-panel-description>
-		</mat-expansion-panel-header>
-		<div style="padding: 10px;">
-			<form [formGroup]="resultLogForm">
-				<div>
-					<mat-checkbox formControlName="save_results">Save results</mat-checkbox>
-				</div>
-				<br>
-				<mat-form-field>
-					<mat-label>Run Name</mat-label>
-					<input matInput type="text" formControlName="runName">
+				<div>Specify target variable</div>
+				<mat-form-field appearance="fill">
+					<mat-label>Target Variable</mat-label>
+					<mat-select (selectionChange)="onSelectTarget()" formControlName="target_variable">
+						<mat-option *ngFor="let variable of variables" [value]="variable" [disabled]="isTargetVarDisabled(variable)"[disabled]="isTargetVarDisabled(variable)">
+							{{variable}}
+						</mat-option>
+					</mat-select>
 				</mat-form-field>
-			</form>
-		</div>
-	</mat-expansion-panel>
-</mat-accordion>
+				
+				<section>
+					<div>Select independent variables </div>
+					<br>
+					<div *ngIf="mainForm.get('target_variable')?.value;else noTargetSelected">
+						<mat-checkbox [checked]="allSelected" [indeterminate]="someSelected()"
+							(change)="setAll($event.checked)">
+							Select All
+						</mat-checkbox>
+						<ul>
+							<li *ngFor="let variable of independentVariables">
+								<mat-checkbox [(ngModel)]="variable.selected" (ngModelChange)="updateAllSelected()" [ngModelOptions]="{standalone: true}">
+									{{variable.name}}
+								</mat-checkbox>
+							</li>
+						</ul>
+					</div>
+					<ng-template #noTargetSelected>
+						<div style="color: red;" >No target selected! Select a target variable to proceed</div>
+					</ng-template>
+				</section>
+			</section>
+		</mat-expansion-panel>
+		<mat-expansion-panel>
+			<mat-expansion-panel-header>
+				<mat-panel-title>Algorithm specific parameters</mat-panel-title>
+				<mat-panel-description>
+					Set parameters of the machine learning algorithm
+				</mat-panel-description>
+			</mat-expansion-panel-header>
+			<div [ngSwitch]="mainForm.get('algo_name')?.value">
+				<app-regr-decision-trees-params *ngSwitchCase="'decision_trees_regr'" (valueChange)="onParamsChange($event)"></app-regr-decision-trees-params>
+				<app-regr-knn-params *ngSwitchCase="'knn_regr'" (valueChange)="onParamsChange($event)"></app-regr-knn-params> 
+				<app-regr-random-forest-params *ngSwitchCase="'random_forest_regr'" (valueChange)="onParamsChange($event)"></app-regr-random-forest-params>
+				<app-regr-bagging-params *ngSwitchCase="'bagging_regr'" (valueChange)="onParamsChange($event)"></app-regr-bagging-params>
+				<app-voting-params *ngSwitchCase="'voting_regr'" (valueChange)="onParamsChange($event)"></app-voting-params>
+				<app-cls-decision-trees-params *ngSwitchCase="'decision_trees_cls'"(valueChange)="onParamsChange($event)" ></app-cls-decision-trees-params>
+				<app-cls-random-forest-params *ngSwitchCase="'random_forest_cls'"(valueChange)="onParamsChange($event)" ></app-cls-random-forest-params>
+				<app-cls-knn-params *ngSwitchCase="'knn_cls'"(valueChange)="onParamsChange($event)" ></app-cls-knn-params>
+				<app-cls-voting-params *ngSwitchCase="'voting_cls'"(valueChange)="onParamsChange($event)"></app-cls-voting-params>
+			</div>
+		</mat-expansion-panel>
+		<mat-expansion-panel>
+			<mat-expansion-panel-header>
+				<mat-panel-title>Result logging Information</mat-panel-title>
+				<mat-panel-description>
+					Configure the logging of results
+				</mat-panel-description>
+			</mat-expansion-panel-header>
+			<div style="padding: 10px;">
+				<form [formGroup]="resultLogForm">
+					<div>
+						<mat-checkbox formControlName="save_results">Save results</mat-checkbox>
+					</div>
+					<br>
+					<mat-form-field>
+						<mat-label>Run Name</mat-label>
+						<input matInput type="text" formControlName="runName">
+					</mat-form-field>
+				</form>
+			</div>
+		</mat-expansion-panel>
+	</mat-accordion>
+</form>
 
 <br>
 <h2>Results:</h2>
+
+<!-- <canvas id="canvas">{{ chart }}</canvas> -->
+
 <div *ngIf="results">
-	<div *ngIf="selectedAlgoId == 'linear_regr'">
-		<p>Coefficients:</p>
-		<ul>
-			<li *ngFor="let coefficient of results.Coefficients">{{ coefficient }}</li>
-		</ul>
-		<p>Intercept: {{ results.Intercept }}</p>
-		<p>Mean Absolute Error (MAE): {{ results.mae }}</p>
-		<p>Mean Squared Error (MSE): {{ results.mse }}</p>
-		<p>Root Mean Squared Error (RMSE): {{ results.rmse }}</p>
-		<p>Mean Absolute Percentage: {{ results.mean_absolute_percentage }}</p>
-		<p>Max Error: {{ results.max_error }}</p>
-		<p>R2 Score: {{ results.r2_score }}</p>
-	</div>
-
-	<div *ngIf="selectedAlgoId == 'svm_regr'">
-		<p>Coefficients:</p>
-		<ul>
-			<li *ngFor="let coefficient of results.Coefficients">{{ coefficient }}</li>
-		</ul>
-		<p>Intercept: {{ results.Intercept }}</p>
-		<p>Mean Absolute Error (MAE): {{ results.mae }}</p>
-		<p>Mean Squared Error (MSE): {{ results.mse }}</p>
-		<p>Root Mean Squared Error (RMSE): {{ results.rmse }}</p>
-		<p>Mean Absolute Percentage: {{ results.mean_absolute_percentage }}</p>
-		<p>Max Error: {{ results.max_error }}</p>
-		<p>R2 Score: {{ results.r2_score }}</p>
-	</div>
-
-	<div *ngIf="selectedAlgoId == 'decision_trees_regr'">
-		<p>Mean Absolute Error (MAE): {{ results.mae }}</p>
-		<p>Mean Squared Error (MSE): {{ results.mse }}</p>
-		<p>Root Mean Squared Error (RMSE): {{ results.rmse }}</p>
-		<p>Mean Absolute Percentage: {{ results.mean_absolute_percentage }}</p>
-		<p>Max Error: {{ results.max_error }}</p>
-		<p>R2 Score: {{ results.r2_score }}</p>
-	</div>
-
-	<div *ngIf="selectedAlgoId == 'knn_regr'">
-		<p>Mean Absolute Error (MAE): {{ results.mae }}</p>
-		<p>Mean Squared Error (MSE): {{ results.mse }}</p>
-		<p>Root Mean Squared Error (RMSE): {{ results.rmse }}</p>
-		<p>Mean Absolute Percentage: {{ results.mean_absolute_percentage }}</p>
-		<p>Max Error: {{ results.max_error }}</p>
-		<p>R2 Score: {{ results.r2_score }}</p>
-	</div>
-
-	<div *ngIf="selectedAlgoId == 'random_forest_regr' || selectedAlgoId == 'bagging_regr'">
-		<p>Mean Absolute Error (MAE): {{ results.mae }}</p>
-		<p>Mean Squared Error (MSE): {{ results.mse }}</p>
-		<p>Root Mean Squared Error (RMSE): {{ results.rmse }}</p>
-		<p>Mean Absolute Percentage: {{ results.mean_absolute_percentage }}</p>
-		<p>Max Error: {{ results.max_error }}</p>
-		<p>R2 Score: {{ results.r2_score }}</p>
-	</div>
-
-	<div *ngIf="selectedAlgoId == 'voting_regr'">
-		<p>Mean Absolute Error (MAE): {{ results.mae }}</p>
-		<p>Mean Squared Error (MSE): {{ results.mse }}</p>
-		<p>Root Mean Squared Error (RMSE): {{ results.rmse }}</p>
-		<p>Mean Absolute Percentage: {{ results.mean_absolute_percentage }}</p>
-		<p>Max Error: {{ results.max_error }}</p>
-		<p>R2 Score: {{ results.r2_score }}</p>
-	</div>
-
-	<div *ngIf="['decision_trees_cls', 'random_forest_cls', 'knn_cls', 'gauss_naive_bayes_cls'].includes(selectedAlgoId)">
-		<p>AUC-ROC: {{ results.auc }}</p>
-		<p>Precision: {{ results.precision }}</p>
-		<p>Accuracy: {{ results.accuracy }}</p>
-		<p>Recall: {{ results.recall }}</p>
-		<p>Specificity: {{ results.specificity }}</p>
-		<p>F1 Score: {{ results.f1 }}</p>
+	<!-- <div *ngIf="['decision_trees_cls', 'random_forest_cls', 'knn_cls', 'gauss_naive_bayes_cls'].includes(mainForm.get('algo_name')?.value)">
+		<p>AUC-ROC: {{ results.auc | number: '1.4-4' }}</p>
+		<p>Precision: {{ results.precision | number: '1.4-4' }}</p>
+		<p>Accuracy: {{ results.accuracy | number: '1.4-4' }}</p>
+		<p>Recall: {{ results.recall | number: '1.4-4' }}</p>
+		<p>Specificity: {{ results.specificity | number: '1.4-4' }}</p>
+		<p>F1 Score: {{ results.f1 | number: '1.4-4' }}</p>
 		<div>
-		<img [src]="cmPlot" alt="Confusion Matrix Plot">
+			<img *ngIf="results.cm_plot" src="data:image/png;base64,{{results.cm_plot}}" alt="Confusion Matrix Plot">
 		</div>
 		<div>
-		<img [src]="rfcPlot" alt="ROC curve Plot">
-	    </div>
+			<img *ngIf="results.roc_plot" src="data:image/png;base64,{{results.roc_plot}}"  alt="ROC curve Plot">
+		</div>
 		<div>
-        <img [src]="dispPlot" alt="Precision-Recall Curve Plot">
-	    </div>
+			<img *ngIf="results.pr_plot" src="data:image/png;base64,{{results.pr_plot}}"  alt="Precision-Recall Curve Plot">
+		</div>
+	</div> -->
 
+	<!-- FEATURE IMPORTANCES -->
+	<!-- <img *ngIf="results.feature_imp_plot" src="data:image/png;base64,{{results.feature_imp_plot}}"> -->
+
+	<div *ngIf="['voting_cls', 'voting_regr'].includes(mainForm.get('algo_name')?.value); else elseStandardResults">
+		
+		<h2>Voting Results</h2>
+		<p>Accuracy: {{ results[0].accuracy | number: '1.4-4' }}</p>
+		<p>Precision: {{ results[0].precision | number: '1.4-4' }}</p>
+		<p>Recall: {{ results[0].recall | number: '1.4-4' }}</p>
+		<p>Specificity: {{ results[0].specificity | number: '1.4-4' }}</p>
+		<p *ngIf="results[0].auc">AUC-ROC: {{ results[0].auc | number: '1.4-4' }}</p>
+		<br>
+		
+		<h2>Individual Estimator Results</h2>
+		<div *ngFor="let estimatorResult of results[0].estimator_results">
+			<p>Estimator: {{ estimatorResult.est_name}}</p>
+			<p>Accuracy: {{ estimatorResult.accuracy | number: '1.4-4' }}</p>
+			<p>Recall: {{ estimatorResult.recall | number: '1.4-4' }}</p>
+			<p>Specificity: {{ estimatorResult.specificity | number: '1.4-4' }}</p>
+			<p *ngIf="estimatorResult.auc">AUC-ROC: {{ estimatorResult.auc | number: '1.4-4' }}</p>
+			<br>
+		</div>
 	</div>
 
-	<div *ngIf="['voting_cls'].includes(selectedAlgoId)">
-		<p>AUC-ROC: {{ results.auc }}</p>
-		<p>Precision: {{ results.precision }}</p>
-		<p>Accuracy: {{ results.accuracy }}</p>
-	</div>
+	<ng-template #elseStandardResults>
+		<!--  REGRESSION METRICS  -->
+		<div *ngIf="mainForm.get('algo_type')?.value == 'regr'">
+
+			<!-- YU JING TODO SPIDER CHART -->
+			<div *ngIf="results[0]" style="position: relative; margin: auto; height:80vh; width:80vw; padding: 25px">
+				<canvas  id="regr_metrics">{{ chart_bar }}</canvas>
+			</div>
+			<div *ngIf="results[0].importance_values" style="position: relative; margin: auto; height:80vh; width:80vw; padding: 25px">
+				<canvas  id="importance">{{ chart_radar }}</canvas>
+			</div>
+			
+			<div class="image-container">
+				<img *ngFor="let result of results" src="data:image/png;base64,{{result.feature_imp_plot}}" alt="Feature Importance plot">
+			</div>
+		</div>
+
+		<!--  CLASSIFICATION METRICS  -->
+		<div *ngIf="mainForm.get('algo_type')?.value == 'cls'">
+
+			<!-- YU JING TODO SPIDER CHART -->
+			<div *ngIf="results[0]" style="position: relative; margin: auto; height:80vh; width:80vw; padding: 50px">
+				<canvas  id="regr_metrics">{{ chart_bar }}</canvas>
+			</div>
+			<div *ngIf="results[0].importance_values" style="position: relative; margin: auto; height:80vh; width:80vw; padding: 50px">
+				<canvas  id="importance">{{ chart_radar }}</canvas>
+			</div>
+			<div *ngIf="mainForm.get('algo_name')?.value != 'voting_cls'">
+				<h2>Confusion Matrix</h2>
+				<div class="image-container">
+					<div *ngFor="let result of results">
+						<div style="text-align: center;">{{result.split_value}}</div>
+						<img style="max-width: 550px;" src="data:image/png;base64,{{result.cm_plot}}" alt="Confusion matrix">
+					</div>
+				</div>
+				<br>
+				<h2>ROC Curve</h2>
+				<div class="image-container">
+					<div *ngFor="let result of results">
+						<div style="text-align: center;">{{result.split_value}}</div>
+						<img style="margin: 0px 20px; max-width: 550px;" src="data:image/png;base64,{{result.roc_plot}}" alt="ROC curve">
+					</div>
+				</div>
+				<br>
+				<h2>Precision Recall Curve</h2>
+				<div class="image-container">
+					<div *ngFor="let result of results">
+						<div style="text-align: center;">{{result.split_value}}</div>
+						<img style="margin: 0px 20px; max-width: 550px;" src="data:image/png;base64,{{result.pr_plot}}" alt="Precision recall curve">
+					</div>
+				</div>
+				<br>
+				<h2>Feature Importances</h2>
+				<div class="image-container">
+					<div *ngIf="!results[0].feature_imp_plot">
+						No feature importances to display
+					</div>
+					<div *ngFor="let result of results">
+						<div *ngIf="result.feature_imp_plot">
+							<div style="text-align: center;">{{result.split_value}}</div>
+							<img style="margin: 0px 20px; max-width: 550px;" src="data:image/png;base64,{{result.feature_imp_plot}}" alt="Feature Importance plot">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</ng-template>
 </div>

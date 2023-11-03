@@ -1,3 +1,4 @@
+import { of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { Component, ViewChild } from '@angular/core';
 import { AgGridAngular } from 'ag-grid-angular';
@@ -7,6 +8,9 @@ import { Observable, map } from 'rxjs';
 
 import { ChartService } from 'src/app/services/chart-service';
 import { Comparators } from '../utilities/comparators';
+import { DatasetState } from '../state-controllers/dataset-controller/states';
+import { Store } from '@ngrx/store';
+import { selectDataset } from '../state-controllers/dataset-controller/selectors/dataset.selectors';
 
 
 @Component({
@@ -19,17 +23,25 @@ export class ResultsComponent {
   httpClient: HttpClient;
 
   user_id = "6435575578b04a2b1549c17b";
+
+  dataset$ = this.datasetStore.select(selectDataset);
+  roc_plot: any[] = [] 
+  pr_plot : any[] = [] 
+  cm_plot : any[] = [] 
   
   private gridApi!: GridApi;
   columnApi: any;
 
   chart: any;
   selectedData: any[] = [];
+  selected_id: any;
 
   displayActionToolbar: any;
+  chartData: any;
 
   constructor(httpClient: HttpClient,
-    private chartService: ChartService
+    private datasetStore: Store<DatasetState>,
+    private chartService: ChartService,
   ) {
     this.apiUrl = 'http://127.0.0.1:5000/'
     this.httpClient = httpClient;
@@ -81,12 +93,21 @@ export class ResultsComponent {
     this.gridApi! = params.api;
     this.columnApi = params.columnApi;
 
-    const request_body = {
-      user_id: this.user_id
-    }
-
-    this.rowData$ = this.chartService.getResults(request_body)
+    this.dataset$.subscribe((data) => {
+      const datasetId = data._id;
+      this.selected_id = data._id
+      const request_body = {
+        user_id: this.user_id,
+        dataset_id: datasetId,
+      }
+      this.rowData$ = this.chartService.getResults(request_body)
       .pipe(map(response => response.data))
+      this.rowData$.subscribe(data => {
+        this.chartData = data
+      })
+    });
+
+    
   }
 
   onFirstDataRendered(event: FirstDataRenderedEvent){
@@ -114,11 +135,66 @@ export class ResultsComponent {
     this.gridApi.deselectAll()
   }
 
-  public plotGraph(selected_data: any[]) {
+  public plotClsGraph(selected_data: any[]) {
     this.chart = new Chart('canvas', {
       type: 'bar',
+      options: {
+        plugins: {
+            title: {
+                display: true,
+                text: 'Metrics Comparison'
+            }
+        }
+      },
       data: {
-        labels: selected_data.map(row => row.run_name + " (" + row.run_id + ")"),
+        labels: selected_data.map(row => row.run_name 
+          // + " (" + row.run_id + ")"
+           ),
+        datasets:[
+          {
+            label:'Accuracy',
+            data: selected_data.map(row => row.metrics.accuracy)
+          },
+          {
+            label:'AUC-ROC',
+            data: selected_data.map(row => row.metrics.auc)
+          },
+          {
+            label:'F1-score',
+            data: selected_data.map(row => row.metrics.f1)
+          },
+          {
+            label:'Precision score',
+            data: selected_data.map(row => row.metrics.precision)
+          },
+          {
+            label:'Recall score',
+            data: selected_data.map(row => row.metrics.recall)
+          },
+          {
+            label:'Specificity',
+            data: selected_data.map(row => row.metrics.specificity)
+          },
+        ]
+      }
+    })
+  }
+
+  public plotRegrGraph(selected_data: any[]) {
+    this.chart = new Chart('canvas', {
+      type: 'bar',
+      options: {
+        plugins: {
+            title: {
+                display: true,
+                text: 'Metrics Comparison'
+            }
+        }
+      },
+      data: {
+        labels: selected_data.map(row => row.run_name 
+          // + " (" + row.run_id + ")"
+          ),
         datasets:[
           {
             label:'r2 score',
@@ -149,15 +225,35 @@ export class ResultsComponent {
             data: selected_data.map(row => row.metrics.max_error)
           },
         ]
-        }
+      }
     })
+  }
+  
+  public compareCls(selected_data: any[]){
+    this.roc_plot = []
+    this.pr_plot = []
+    this.cm_plot = []
+
+    for (const data of selected_data){
+        this.roc_plot.push(data.metrics.roc_plot)
+        this.pr_plot.push(data.metrics.pr_plot)
+        this.cm_plot.push(data.metrics.cm_plot)
+    }
+
   }
 
   public displayData(){
     if (this.chart != null) {
       this.chart.destroy()
     }
-    this.plotGraph(this.selectedData)
+    if (this.selectedData[0].algo_type == 'cls'){
+      console.log(this.selectedData)
+      this.plotClsGraph(this.selectedData)
+    }
+    else{
+      
+    }
+    this.plotRegrGraph(this.selectedData)
   }
   
   onDeleteRows(){
@@ -166,8 +262,11 @@ export class ResultsComponent {
         next: () => {
           console.log('Items deleted successfully');
           const request_body = {
-            user_id: this.user_id
+            user_id: this.user_id,
+            dataset_id: this.selected_id
           }
+          this.selectedData = []
+          this.displayActionToolbar = false
           this.rowData$ = this.chartService.getResults(request_body)
           .pipe(map(response => response.data))
         },

@@ -11,6 +11,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
 @import 'ag-grid-community/styles/ag-grid.css';
 @import 'ag-grid-community/styles/ag-theme-alpine.css';
 @import 'ag-grid-community/styles/ag-theme-material.css';
+@import 'ngx-toastr/toastr';
 
 .ag-theme-material {
    --ag-borders: dashed;

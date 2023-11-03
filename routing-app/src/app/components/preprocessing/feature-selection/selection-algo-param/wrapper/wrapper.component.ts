@@ -3,25 +3,26 @@ import { FormControl, FormGroup } from '@angular/forms';
 import { Store } from '@ngrx/store';
 import { selectDataset } from 'src/app/components/state-controllers/dataset-controller/selectors/dataset.selectors';
 import { DatasetState } from 'src/app/components/state-controllers/dataset-controller/states';
-import { PreprocssingService } from 'src/app/services/preprocessing-services';
+
 
 @Component({
-  selector: 'app-select-k-best',
-  templateUrl: './select-k-best.component.html',
-  styleUrls: ['./select-k-best.component.css']
+  selector: 'app-wrapper',
+  templateUrl: './wrapper.component.html',
+  styleUrls: ['./wrapper.component.css']
 })
-export class SelectKBestComponent {
+export class WrapperComponent {
   @Output() valueChange = new EventEmitter<any>()
   dataset_attributes: any;
-  max_length: any
-  is_regression = false;
-  is_classification = false;
+  max_length: any;
+  selected_model: any;
+  estimatorParamsData = {};
 
   paramsForm = new FormGroup({
     k_best: new FormControl(5),
-    selection_type: new FormControl(''),
+    selection_type: new FormControl('sfs'),
     target_attribute: new FormControl(''),
-    model: new FormControl('')
+    estimator_type: new FormControl('lin_regr'),
+    model: new FormControl(''),
   });
 
   constructor(
@@ -42,24 +43,20 @@ export class SelectKBestComponent {
     })
   }
 
-  changeOptions(formData: any) {
-    console.log(formData)
-    if (formData == "regression") {
-      this.is_regression = true
-      this.is_classification = false
-      this.paramsForm.controls['selection_type'].setValue('mutual_info_regression')
-    }
-
-    else if (formData == "classification") {
-      this.is_regression = false
-      this.is_classification = true
-      this.paramsForm.controls['selection_type'].setValue('mutual_info_classif')
-    }
+    onEstimatorChange(){
+      this.selected_model= this.paramsForm.get('estimator_type')?.getRawValue()
   }
 
+  onParamsChange(newValue: any){
+    this.estimatorParamsData = newValue
+    this.onChange()
+  }
 
   onChange(){
-    this.changeOptions(this.paramsForm.getRawValue()['model'])
-    this.valueChange.emit(this.paramsForm.getRawValue()) 
+    const allParamData = {
+      ...this.paramsForm.getRawValue(),
+      estimator_params: this.estimatorParamsData
+    }
+    this.valueChange.emit(allParamData) 
   }
 }

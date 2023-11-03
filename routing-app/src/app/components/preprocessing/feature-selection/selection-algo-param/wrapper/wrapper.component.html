@@ -1,0 +1,59 @@
+<form [formGroup]="paramsForm">
+    <mat-form-field>
+        <mat-label>Selection Type</mat-label>
+        <mat-select formControlName="selection_type">
+            <mat-option value="sfs">Sequential Forward Selection (SFS)</mat-option>
+            <mat-option value="rfe">Recursive Feature Elimination (RFE)</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+        <mat-label>model</mat-label>
+        <mat-select formControlName="model" (selectionChange)="onEstimatorChange()">
+            <mat-option value="classification">Classification</mat-option>
+            <mat-option value="regression">Regression</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <mat-form-field>
+        <mat-label>best attributes (1 - k)</mat-label>
+        <input matInput formControlName="k_best" type="number" min="0" max={{max_length}}>
+    </mat-form-field>
+    <div [ngSwitch]="paramsForm.controls.selection_type.getRawValue()">
+        <mat-form-field *ngSwitchCase="'sfs'">
+            <mat-label>algorithm</mat-label>
+            <mat-select formControlName="estimator_type" (selectionChange)="onEstimatorChange()">
+                <mat-option value="lin_regr">Linear Regression</mat-option>
+                <mat-option value="knn">K-Nearest Neighbours (KNN)</mat-option>
+            </mat-select>
+        </mat-form-field>
+        <mat-form-field *ngSwitchCase="'rfe'">
+            <mat-label>algorithm</mat-label>
+            <mat-select formControlName="estimator_type" (selectionChange)="onEstimatorChange()">
+                <mat-option value="lin_regr">Linear Regression</mat-option>
+            </mat-select>
+        </mat-form-field>
+    </div>
+    <!-- <mat-form-field>
+        <mat-label>algorithm</mat-label>
+        <mat-select formControlName="estimator_type" (selectionChange)="onEstimatorChange()">
+            <mat-option value="lin_regr">Linear Regression</mat-option>
+            <mat-option value="knn">K-Nearest Neighbours (KNN)</mat-option>
+        </mat-select>
+    </mat-form-field> -->
+    <mat-form-field>
+        <mat-label>Target Attribute</mat-label>
+        <mat-select formControlName="target_attribute">
+            <mat-option *ngFor="let attribute of dataset_attributes" value={{attribute}}>{{attribute}}</mat-option>
+        </mat-select>
+    </mat-form-field>
+    <br>
+    <div>
+        <span>Estimator algorithm params</span>
+        <span style="padding: 10px;">{{selected_model}}</span>
+
+        <div *ngIf="selected_model=='lin_regr'">
+        </div>
+        <div *ngIf="selected_model=='knn'">
+            <app-regr-knn-params (valueChange)="onParamsChange($event)"></app-regr-knn-params>
+        </div>
+    </div>
+</form>

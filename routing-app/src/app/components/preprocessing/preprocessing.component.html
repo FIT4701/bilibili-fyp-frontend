@@ -2,7 +2,7 @@
     <app-toolbar currentPageTitle="Preprocessing" previousLink="/dataset" nextLink="/analysis"></app-toolbar>
 </div>
 
-<div style="padding: 10px;">
+<div style="padding: 10px; display:flex;">
     <mat-form-field appearance="fill">
         <mat-label>Select preprocessing method</mat-label>
         <mat-select [(value)]="selectedPreprocessingMethodId">
@@ -11,33 +11,50 @@
             </mat-option>
         </mat-select>
     </mat-form-field>
+
+    <span class="flex-spacer"></span>
     <button style="margin: 10px;" mat-raised-button color="accent" (click)="runPreprocessing()">RUN</button>
 </div>
+
+<!-- <div *ngIf="selectedPreprocessingMethodId == 'split dataset'">
+        <mat-form-field appearance="fill">
+            <mat-label>Split Variable</mat-label>
+            <mat-select formControlName="split_variable">
+            <mat-option *ngFor="let variable of variables" [value]="variable">{{variable.name}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+</div> -->
+
 
 <mat-accordion multi>
 	<mat-expansion-panel>
 		<mat-expansion-panel-header>
 			<mat-panel-title>Attribute selection</mat-panel-title>
 			<mat-panel-description>
-				Select attributes to be inlcuded in preprocessing
+				Select attributes to be included in preprocessing
 			</mat-panel-description>
 		</mat-expansion-panel-header>
         <section>
-            <div>Select independent variables </div>
-            <br>
-            <div>
-                <mat-checkbox [checked]="allVariablesSelected" [indeterminate]="someSelected()"
-                    (change)="setAll($event.checked)">
-                    Select All
-                </mat-checkbox>
-                <ul>
-                    <li *ngFor="let variable of variables">
-                        <mat-checkbox [(ngModel)]="variable.selected" (ngModelChange)="updateAllSelected()">
-                            {{variable.name}}
-                        </mat-checkbox>
-                    </li>
-                </ul>
+            <div *ngIf="variables.length; else no_dataset">
+                <div>Select independent variables </div>
+                <br>
+                <div>
+                    <mat-checkbox [checked]="allVariablesSelected" [indeterminate]="someSelected()"
+                        (change)="setAll($event.checked)">
+                        Select All
+                    </mat-checkbox>
+                    <ul>
+                        <li *ngFor="let variable of variables">
+                            <mat-checkbox [(ngModel)]="variable.selected" (ngModelChange)="updateAllSelected()">
+                                {{variable.name}}
+                            </mat-checkbox>
+                        </li>
+                    </ul>
+                </div>
             </div>
+            <ng-template #no_dataset>
+                <div style="color: red;" >No dataset selected. Please select a dataset in the dataset page.</div>
+            </ng-template>
         </section>
 	</mat-expansion-panel>
 </mat-accordion>

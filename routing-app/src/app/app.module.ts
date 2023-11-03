@@ -41,7 +41,8 @@ import { VotingParamsComponent as ClsVotingParamsComponent } from './components/
 import { WarningPopupComponent } from './components/machine-learning/warning-popup/warning-popup.component';
 import { ArcgisComponent } from './components/arcgis/arcgis.component';
 import { MatDialogModule } from '@angular/material/dialog';
-
+import { ToastrModule } from "ngx-toastr";
+import { WrapperComponent } from './components/preprocessing/feature-selection/selection-algo-param/wrapper/wrapper.component';
 
 
 @NgModule({
@@ -70,6 +71,7 @@ import { MatDialogModule } from '@angular/material/dialog';
     ClsVotingParamsComponent,
     WarningPopupComponent,
     ArcgisComponent,
+    WrapperComponent,
   ],
   imports: [
     BrowserModule,
@@ -81,6 +83,7 @@ import { MatDialogModule } from '@angular/material/dialog';
     StoreDevtoolsModule.instrument({
       maxAge: 25, // Retains last 25 states
     }),
+    ToastrModule.forRoot(),
     EffectsModule.forRoot([TestConnectionEffects, DatasetEffects, WekaMLEffects]),
     MaterialModule,
     AgGridModule,

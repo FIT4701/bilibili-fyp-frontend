@@ -10,8 +10,11 @@ import BasemapToggle from '@arcgis/core/widgets/BasemapToggle'
 import BasemapGallery from '@arcgis/core/widgets/BasemapGallery'
 
 import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
-
-
+import * as Papa from 'papaparse';
+import HeatmapRenderer from "@arcgis/core/renderers/HeatmapRenderer.js";
+import SimpleRenderer from "@arcgis/core/renderers/SimpleRenderer.js";
+import Color from "@arcgis/core/Color.js";
+import ClassBreaksRenderer from "@arcgis/core/renderers/ClassBreaksRenderer.js";
 
 
 @Component({
@@ -20,6 +23,11 @@ import VectorTileLayer from '@arcgis/core/layers/VectorTileLayer';
   styleUrls: ['./arcgis.component.css']
 })
 export class ArcgisComponent {
+
+  csvFileInput: any;
+  statisticalArea2Layer!: FeatureLayer;
+  map!: any;
+  renderer: any;
 
   ngOnInit(){
     esriConfig.apiKey = "AAPKec494d08b92e410a832aca68af6c08ccRwAYSa7l5iUVz_9786FInnz8CIBxsLUPLWXem0ePCii_h-ycfUmotzastMOAKwhP";
@@ -35,8 +43,6 @@ export class ArcgisComponent {
 
     const view = new MapView({
       map: map,
-      // center: [-118.805, 34.027], // Longitude, latitude
-      // zoom: 13, // Zoom level
       center: [133.7751, -25.2744], // Longitude, Latitude of Australia's center
       zoom: 4, 
       container: "viewDiv" // Div element
@@ -46,92 +52,6 @@ export class ArcgisComponent {
 
     const graphicsLayer = new GraphicsLayer();
     map.add(graphicsLayer);
-
-    const point: any = { //Create a point
-      type: "point",
-      longitude: -118.80657463861,
-      latitude: 34.0005930608889
-    };
-
-    const simpleMarkerSymbol = {
-      type: "simple-marker",
-      color: [226, 119, 40],  // Orange
-      outline: {
-          color: [255, 255, 255], // White
-          width: 1
-        }
-    };
-    
-    const pointGraphic = new Graphic({
-      geometry: point,
-      symbol: simpleMarkerSymbol
-    });
-    graphicsLayer.add(pointGraphic);
-
-
-
-    // Create a line geometry
-    const polyline = {
-      type: "polyline",
-      paths: [
-          [-118.821527826096, 34.0139576938577], //Longitude, latitude
-          [-118.814893761649, 34.0080602407843], //Longitude, latitude
-          [-118.808878330345, 34.0016642996246]  //Longitude, latitude
-      ]
-    };
-    const simpleLineSymbol = {
-      type: "simple-line",
-      color: [226, 119, 40], // Orange
-      width: 2
-    };
-
-    const polylineGraphic = new Graphic({
-      geometry: <any>polyline,
-      symbol: simpleLineSymbol
-    });
-    graphicsLayer.add(polylineGraphic);
-
-
-
-    // Create a polygon geometry
-    const polygon = {
-      type: "polygon",
-      rings: [
-          [-118.818984489994, 34.0137559967283], //Longitude, latitude
-          [-118.806796597377, 34.0215816298725], //Longitude, latitude
-          [-118.791432890735, 34.0163883241613], //Longitude, latitude
-          [-118.79596686535, 34.008564864635],   //Longitude, latitude
-          [-118.808558110679, 34.0035027131376]  //Longitude, latitude
-      ]
-    };
-
-    const simpleFillSymbol = {
-      type: "simple-fill",
-      color: [227, 139, 79, 0.8],  // Orange, opacity 80%
-      outline: {
-          color: [255, 255, 255],
-          width: 1
-      }
-    };
-
-    const popupTemplate = {
-      title: "{Name}",
-      content: "{Description}"
-    }
-    const attributes = {
-        Name: "Graphic",
-        Description: "I am a polygon"
-    }
-
-    const polygonGraphic = new Graphic({
-      geometry: <any>polygon,
-      symbol: simpleFillSymbol,
-      attributes: attributes,
-      popupTemplate: popupTemplate,
-    });
-    graphicsLayer.add(polygonGraphic);
-
-
 
     const statisticalArea2Labels = <any>{
       symbol: {
@@ -150,7 +70,6 @@ export class ArcgisComponent {
       labelPlacement: "above-center",
       labelExpressionInfo: {
         expression: "$feature.PHA_CODE16"
-        // expression: "$feature.SA2_MAINCODE_2016" + ": " + "$feature.SA2_NAME_2016"
       }
     };
 
@@ -158,10 +77,108 @@ export class ArcgisComponent {
     var statisticalArea2Layer = new FeatureLayer({
       url: "https://services7.arcgis.com/nMBRP09Dx4VqvXeZ/arcgis/rest/services/HSVD_prevalence_PHA/FeatureServer/0",
       labelingInfo: [statisticalArea2Labels],
-    });
+    });    
+    
+    const less35 = {
+      type: "simple-fill", // autocasts as new SimpleFillSymbol()
+      color: "#fffcd4",
+      style: "solid",
+      outline: {
+        width: 0.2,
+        color: [255, 255, 255, 0.5]
+      }
+    };
+
+    const less50 = {
+      type: "simple-fill", // autocasts as new SimpleFillSymbol()
+      color: "#b1cdc2",
+      style: "solid",
+      outline: {
+        width: 0.2,
+        color: [255, 255, 255, 0.5]
+      }
+    };
+
+    const more50 = {
+      type: "simple-fill", // autocasts as new SimpleFillSymbol()
+      color: "#38627a",
+      style: "solid",
+      outline: {
+        width: 0.2,
+        color: [255, 255, 255, 0.5]
+      }
+    };
+
+    const more75 = {
+      type: "simple-fill", // autocasts as new SimpleFillSymbol()
+      color: "#0d2644",
+      style: "solid",
+      outline: {
+        width: 0.2,
+        color: [255, 255, 255, 0.5]
+      }
+    };
+
+    /*****************************************************************
+     * Set each unique value directly in the renderer's constructor.
+     * At least one field must be used (in this case the "COL_DEG" field).
+     * The label property of each unique value will be used to indicate
+     * the field value and symbol in the legend.
+     *****************************************************************/
+
+    const renderer: any = {
+      type: "class-breaks", // autocasts as new ClassBreaksRenderer()
+      field: "stroke_reported",
+      legendOptions: {
+        title: "% of adults (25+) with a college degree"
+      },
+      defaultSymbol: {
+        type: "simple-fill", // autocasts as new SimpleFillSymbol()
+        color: "black",
+        style: "backward-diagonal",
+        outline: {
+          width: 0.5,
+          color: [50, 50, 50, 0.6]
+        }
+      },
+      defaultLabel: "no data",
+      classBreakInfos: [
+        {
+          minValue: 0,
+          maxValue: 0.6999,
+          symbol: less35,
+          label: "< 35%"
+        },
+        {
+          minValue: 0.7000,
+          maxValue: 0.9999,
+          symbol: less50,
+          label: "35 - 50%"
+        },
+        {
+          minValue: 1,
+          maxValue: 1.1119,
+          symbol: more50,
+          label: "50 - 75%"
+        },
+        {
+          minValue: 1.2,
+          maxValue: 10,
+          symbol: more75,
+          label: "> 75%"
+        }
+      ]
+    };
+
+    this.renderer = renderer;
+
+    // statisticalArea2Layer.renderer = renderer;
 
     // Add the states layer to the map
     map.add(statisticalArea2Layer);
+
+    this.statisticalArea2Layer = statisticalArea2Layer;
+    this.map = map;
 
     // Create a Popup template
     var popupTemplate2 = {
@@ -185,12 +202,12 @@ export class ArcgisComponent {
 
 
 
-    const basemapToggle = new BasemapToggle({
-      view: view,
-      nextBasemap: "arcgis-imagery"
-   });
+  //   const basemapToggle = new BasemapToggle({
+  //     view: view,
+  //     nextBasemap: "arcgis-imagery"
+  //  });
 
-    view.ui.add(basemapToggle,"bottom-right");
+  //   view.ui.add(basemapToggle,"bottom-right");
 
     // const basemapGallery = new BasemapGallery({
     //   view: view,
@@ -202,9 +219,97 @@ export class ArcgisComponent {
     // });
 
     // view.ui.add(basemapGallery,"top-right");
-
-
-
     
+    setTimeout(()=>{
+      // Define the new field and its value
+      var newField = {
+        name: "stroke_reported",
+        type: "integer",
+        alias: "Stroke Reported",
+      };
+
+      // Add the new field to the existing fields
+      var existingFields = statisticalArea2Layer.fields.slice(); // Copy existing fields
+      existingFields.push(<any>newField);
+
+      // Create a new FeatureLayer with the updated fields
+      var updatedFeatureLayer = new FeatureLayer({
+        url: "https://services7.arcgis.com/nMBRP09Dx4VqvXeZ/arcgis/rest/services/HSVD_prevalence_PHA/FeatureServer/0",
+        outFields: ["*"], // Include all existing fields
+        definitionExpression: "1=1", // Include all features
+        objectIdField: "OBJECTID",
+        fields: existingFields, // Include the updated fields
+      });
+
+      // Query all features and set the value of the new field
+      updatedFeatureLayer
+        .queryFeatures()
+        .then(function (results) {
+          var updates: Graphic[] = [];
+          results.features.forEach(function (feature) {
+            feature.attributes.stroke_reported = 5;
+            updates.push(feature);
+          });
+
+          // Apply updates to the features
+          updatedFeatureLayer.applyEdits({
+            updateFeatures: updates,
+          });
+        });
+      updatedFeatureLayer.renderer= renderer
+      map.add(updatedFeatureLayer);
+
+    }, 3000)
+    
+    
+  }
+
+  onFileSelected(event:any){
+    const file:File = event.target.files[0];
+    if (file) {
+      this.loadCsvData(file);
+    }
+  }
+
+  loadCsvData(file: File) {
+    Papa.parse(file, {
+      header: true,
+      dynamicTyping: true,
+      skipEmptyLines: true,
+      complete: (result) => {
+        const csvData:any = result.data;
+        const graphics: any[] = [];
+
+        this.statisticalArea2Layer.queryFeatures().then((featureSet) => {
+          featureSet.features.forEach((feature) => {
+            const code = feature.attributes.PHA_CODE16;
+            const matchingCSVRow = csvData.find((row: { [x: string]: any; }) => row['Code'].toString() === code);
+            if (matchingCSVRow) {
+              const cvdRate = matchingCSVRow['stroke reported'];
+              feature.attributes['stroke_reported'] = cvdRate;
+              graphics.push(feature);
+            }
+          });
+
+          console.log(graphics)
+          console.log(this.statisticalArea2Layer.fields)
+
+          const combinedFeatureLayer = new FeatureLayer({
+            source: graphics,
+            objectIdField: 'OBJECTID_1',
+            geometryType: 'polygon',
+            fields: this.statisticalArea2Layer.fields,
+          });
+          combinedFeatureLayer.renderer = this.renderer;
+
+          this.statisticalArea2Layer.source = <any>graphics;
+          this.statisticalArea2Layer.renderer = this.renderer;
+          this.statisticalArea2Layer.refresh();
+          this.map.removeAll();
+          this.map.add(this.statisticalArea2Layer);
+          this.map.add(combinedFeatureLayer)
+        });
+      },
+    });
   }
 }

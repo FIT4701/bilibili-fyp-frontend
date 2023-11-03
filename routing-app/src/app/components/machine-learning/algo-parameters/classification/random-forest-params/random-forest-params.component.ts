@@ -11,7 +11,7 @@ export class RandomForestParamsComponent {
   @Output() valueChange = new EventEmitter<any>()
 
   paramsForm = new FormGroup({
-    max_depth: new FormControl(2),
+    max_depth: new FormControl(),
     random_state: new FormControl(0),
   });
 

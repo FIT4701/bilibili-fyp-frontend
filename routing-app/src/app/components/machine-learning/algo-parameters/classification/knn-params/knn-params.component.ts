@@ -12,8 +12,7 @@ export class KnnParamsComponent {
   @Output() valueChange = new EventEmitter<any>()
 
   paramsForm = new FormGroup({
-    radius: new FormControl(0.2),
-    weights: new FormControl(''),
+    n_neighbors: new FormControl(5)
   });
 
   constructor() { }

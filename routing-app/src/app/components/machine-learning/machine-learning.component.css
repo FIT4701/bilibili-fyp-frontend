@@ -1,3 +1,21 @@
 .flex-spacer {
     flex: 1 1 auto;
-  }
+}
+
+  
+.image-container {
+  display: flex; /* Use Flexbox to create a horizontal layout */
+  overflow-x: auto; /* Enable horizontal scrolling when content overflows */
+  scroll-behavior: smooth; /* Add smooth scrolling behavior (optional) */
+  white-space: nowrap; /* Prevent images from wrapping to new lines */
+}
+
+/* Add spacing between images (optional) */
+.image-container img {
+  margin-right: 10px;
+}
+
+/* Hide horizontal scrollbar (optional) */
+/* .image-container::-webkit-scrollbar {
+  display: none;
+} */

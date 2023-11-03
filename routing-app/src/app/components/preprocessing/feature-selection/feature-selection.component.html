@@ -3,22 +3,26 @@
 </div>
 
 <div style="padding: 10px;">
-	<button mat-raised-button [matMenuTriggerFor]="algo">Attribute Selection Algorithms</button>
+    <button *ngIf="!selectedAlgoName; else selected" mat-raised-button [matMenuTriggerFor]="algo" color="accent">Attribute Selection Algorithms</button>
+    <ng-template #selected>
+        <button mat-raised-button [matMenuTriggerFor]="algo" color="primary">{{selectedAlgoName}}</button>
+    </ng-template>
+	<!-- <button mat-raised-button [matMenuTriggerFor]="algo" color="accent">Attribute Selection Algorithms</button> -->
 	<mat-menu #algo="matMenu">
 		<button mat-menu-item [matMenuTriggerFor]="featureSelection">Feature Selection</button>
-		<button mat-menu-item [matMenuTriggerFor]="pca">Principle Component Analysis</button>
+		<!-- <button mat-menu-item [matMenuTriggerFor]="pca">Principle Component Analysis</button> -->
 	</mat-menu>
-    <button style="margin: 10px;" mat-raised-button color="accent" (click)="runPreprocessing()">RUN</button>
     <mat-menu #featureSelection="matMenu">
 		<button mat-menu-item (click)="onSelectAlgo('Feature Selection (select k best)', 'select_k_best')">Select Best Attributes</button>
-		<button mat-menu-item (click)="onSelectAlgo('Feature Selection (perentile)', 'percentile')">Percentile</button>
+		<!-- <button mat-menu-item (click)="onSelectAlgo('Feature Selection (perentile)', 'percentile')">Percentile</button> -->
+        <button mat-menu-item (click)="onSelectAlgo('Feature Selection (wrapper)', 'wrapper')">Wrapper</button>
 	</mat-menu>
-    <mat-menu #pca="matMenu">
-        <button mat-menu-item (click)="onSelectAlgo('PCA (wrapper)', 'wrapper')">Wrapper</button>
+    <!-- <mat-menu #pca="matMenu">
 		<button mat-menu-item (click)="onSelectAlgo('PCA (decomposition)', 'decomposition')">Decomposition</button>
-	</mat-menu>
+	</mat-menu> -->
 
-    <span style="padding: 10px;" *ngIf="selectedAlgoId">{{selectedAlgoName}}</span>
+    <!-- <span style="padding: 10px;" *ngIf="selectedAlgoId">{{selectedAlgoName}}</span> -->
+    <button style="float: right;" mat-raised-button color="accent" (click)="runPreprocessing()">RUN</button>
 </div>
 
 <mat-expansion-panel>
@@ -32,11 +36,31 @@
     </mat-expansion-panel-header>
     <div [ngSwitch]="selectedAlgoId">
         <app-select-k-best *ngSwitchCase="'select_k_best'" (valueChange)="onParamsChange($event)"></app-select-k-best> 
+        <app-wrapper *ngSwitchCase="'wrapper'" (valueChange)="onParamsChange($event)"></app-wrapper>
+        <div *ngSwitchCase="">
+            <div style="color: red;" >Select a feature selection method from the dropdown</div>
+        </div>
     </div>
 </mat-expansion-panel>
+<div *ngIf="table" style="padding: 10px;">
+    <strong><h2>Attributes:</h2></strong>
+    <div *ngFor="let attribute of selectionData">
+        <span>
+            <ng-container> {{attribute}} </ng-container>
+        </span> 
+    </div>
+    <br>
+    <br>
+    <div>
+        <strong><h2>Average Score:</h2></strong>
+        <span> {{score}} </span>
+    </div>
+</div>
 <!-- <button style="margin: 10px;" mat-raised-button color="accent" routerLink="/machine-learning" routerLinkActive="active" (click)="saveSelectionData()">USE SELECTED FEATURES FOR MACHINE LEARNING</button> -->
-<a mat-raised-button color="primary" style="margin: 10px;" routerLink="/machine-learning" routerLinkActive="active" (click)="saveSelectionData()"
+<a *ngIf="displaySave" mat-raised-button color="primary" style="margin: 10px;" routerLink="/machine-learning" routerLinkActive="active" (click)="saveSelectionData()"
 ariaCurrentWhenActive="page">USE SELECTED FEATURES FOR MACHINE LEARNING</a>
 <div style="position: relative; margin: auto; height:80vh; width:80vw; padding: 50px">
     <canvas id="canvas">{{ chart }}</canvas>
 </div>
+
+
