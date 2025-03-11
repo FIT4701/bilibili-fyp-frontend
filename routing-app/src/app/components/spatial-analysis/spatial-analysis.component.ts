@@ -18,6 +18,9 @@ import GraphicsLayer from '@arcgis/core/layers/GraphicsLayer';
 import Polygon from '@arcgis/core/geometry/Polygon';
 import SimpleFillSymbol from '@arcgis/core/symbols/SimpleFillSymbol';
 import { SpatialAnalysisServices } from 'src/app/services/sa-services';
+import { DatasetService } from 'src/app/services/dataset-service';
+import { DatasetActions } from '../state-controllers/dataset-controller/actions';
+import { map } from 'lodash';
 
 
 export interface Variable {
@@ -57,7 +60,8 @@ export class SpatialAnalysisComponent implements OnInit {
     private mlWekaStore: Store,
     private dialog: MatDialog,
     private SAservice: SpatialAnalysisServices,
-    private formBuilder: FormBuilder
+    private formBuilder: FormBuilder,
+    private datasetService: DatasetService,
   ) {
     this.apiUrl = 'http://127.0.0.1:5000/';
     this.httpClient = httpClient;
@@ -170,7 +174,15 @@ export class SpatialAnalysisComponent implements OnInit {
     .subscribe(response => {
       console.log(response)
       this.results = response
-    })
+      this.datasetService.getResponseDataset("6435575578b04a2b1549c17b")
+      .subscribe(response => {
+        console.log(response.data)
+        var new_data = response.data.filter((e: { _id: string | any; }) => e._id.includes(this.datasetId))[0]
+        new_data.attributes = new_data.attributes.filter((attribute: string[]) => !attribute.includes("DATASET_ID"))
+        console.log(new_data.attributes)
+        this.datasetStore.dispatch(DatasetActions.loadSelectedDatasetInit({ data: new_data }))
+      })
+    })    
     
   }
 
